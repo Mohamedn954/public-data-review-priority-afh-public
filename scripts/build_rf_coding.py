@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+"""Apply the MN-derived review-priority indicator typology (RF-01..RF-20) to the WA AFH/HCBS context.
+
+Two outputs:
+ 1) WA_RedFlag_Testability_Matrix.csv  -- for each RF: WA data source, whether it is
+    testable with public data, the WA signal/metric, and current status.
+ 2) WA_AFH_Facility_RedFlags.csv -- facility-level flags for the RFs that ARE
+    computable per-facility from the assembled public data.
+"""
+
+import os as _os
+_BASE = _os.environ.get("AFH_PROJECT_ROOT", _os.path.dirname(_os.path.abspath(__file__)))
+DATA_DIR = _os.environ.get("AFH_DATA_DIR", _os.path.join(_BASE, "data"))
+OUT_DIR  = _os.environ.get("AFH_OUT_DIR",  _os.path.join(_BASE, "deliverables"))
+SRC_DIR  = _os.environ.get("AFH_SRC_DIR",  _os.path.join(_BASE, "sources"))
+_os.makedirs(DATA_DIR, exist_ok=True)
+_os.makedirs(OUT_DIR, exist_ok=True)
+
+import pandas as pd, numpy as np
+DATA=DATA_DIR + "/"
+df=pd.read_csv(DATA+"WA_AFH_3County_Enriched.csv",dtype=str)
+for c in ["n_inspections","n_investigations","n_enforcement","n_limitations",
+          "n_civil_fines","n_stop_placement","n_conditions","phone_shared_count"]:
+    df[c]=pd.to_numeric(df[c],errors="coerce").fillna(0).astype(int)
+df["Licensed_Capacity"]=pd.to_numeric(df["Licensed_Capacity"],errors="coerce")
+
+# ---------- Facility-level flags (only the per-facility computable RFs) ----------
+# RF-08 proxy: undisclosed related-party network -> shares phone with >=2 other licenses (cluster>=3)
+df["RF08_network_cluster"]= (df["phone_shared_count"]>=3)
+# RF-03 proxy at facility level: part of a multi-home operator cluster (>=2 homes one phone)
+df["RF03_multi_home_operator"]=(df["phone_shared_count"]>=2)
+# RF-18/enforcement signal: facility with repeated investigations (>=3) -> high complaint load
+df["high_complaint_load"]=(df["n_investigations"]>=3)
+# enforcement history
+df["has_enforcement"]=(df["n_enforcement"]>0)
+df["has_stop_placement"]=(df["n_stop_placement"]>0)
+df["has_condition"]=(df["n_conditions"]>0)
+# RF-06/RF-15 exclusion: facility name matches exclusion list (verified 0)
+df["RF06_exclusion_match"]=(df["exclusion_name_match"].fillna("")!="")
+
+fac_cols=["License_Number","Facility_Name","City","County","Licensed_Capacity",
+          "Medicaid_Contract_Flag","Specialty","Contract",
+          "n_inspections","n_investigations","n_enforcement","n_civil_fines",
+          "n_stop_placement","n_conditions","phone_shared_count",
+          "RF03_multi_home_operator","RF08_network_cluster","high_complaint_load",
+          "has_enforcement","has_stop_placement","has_condition","RF06_exclusion_match",
+          "latest_enforcement_year","reports_url"]
+df[fac_cols].to_csv(DATA+"WA_AFH_Facility_RedFlags.csv",index=False)
+
+# ---------- Testability matrix ----------
+rows=[
+ ("RF-01","Category 1: Program, Enrollment, and Network Anomalies","Rapid provider or facility growth","Exponential growth following enrollment.","Testable (program/sector level)","DSHS AFH license dataset (formation/license dates); ALTSA caseload forecast","Count new AFH licenses per year by county; compare to bed/caseload growth","Testable over time with license-date field; this snapshot shows current roster only"),
+ ("RF-02","Category 1: Program, Enrollment, and Network Anomalies","Spending growth disconnected from beneficiary growth","Macro-level spending outstripping population.","Testable (program level)","OFM/DSHS LTC budget; HCA spending-growth reports; Caseload Forecast Council","LTC total funds grew from $3.8B (2013-15, WRC 2021) to $10.44B (2023-25, OFM enacted) to $13.07B proposed (2025-27, +25.2%; DSHS-reported enacted ~$12.9B); AFH bargaining +$266M","Documented at program level; per-AFH payment data requires HCA records request"),
+ ("RF-03","Category 1: Program, Enrollment, and Network Anomalies","Multi-entity or multi-facility operator concentration","Rapid accumulation of licenses.","Partially Testable","HCA Medicaid payment data by provider (not public); proxy: operator clusters","Provider-payment concentration not public; phone clusters show operator concentration","True billing concentration = records request; operator concentration computed (72 clusters)"),
+ ("RF-04","Category 1: Program, Enrollment, and Network Anomalies","Geographic concentration or out-of-state operator","Operators concentrated or residing out-of-state.","Partially Testable","SOS registered-agent/governor addresses (CCFS); AFH owner address","Out-of-state governor/agent addresses via CCFS sampling","CCFS API gated; sample via UI; not bulk-computable -> records/manual"),
+ ("RF-05","Category 1: Program, Enrollment, and Network Anomalies","Incomplete administrative or enrollment data","Missing capitalization records at licensing.","Not Publicly Testable","DSHS licensing files; not published","% of applications with incomplete ownership/background data","Internal DSHS metric; records request"),
+ ("RF-06","Category 1: Program, Enrollment, and Network Anomalies","Excluded party involvement or linkage gap","Excluded individuals operating via new LLCs.","Partially Testable","HCA + DSHS exclusion lists; LEIE; AFH licensee names","Cross-match exclusion names vs AFH operators","Public lists available; join blocked b/c facility names != licensee legal names (0 verified matches)"),
+ ("RF-07","Category 1: Program, Enrollment, and Network Anomalies","Concealed or opaque ownership / related-party control","Use of straw owners.","Partially Testable","County assessor parcel ownership vs AFH address; AFH is residence","Match AFH property owner (assessor) to licensee","Assessor data public per county; cross-match is manual/records-intensive"),
+ ("RF-08","Category 1: Program, Enrollment, and Network Anomalies","Shared address, phone, registered agent, or network","Multiple licenses sharing contact data.","Testable (proxy)","DSHS dataset shared phone/address/contact; SOS common governors","Shared-phone clusters: 72 multi-license clusters (up to 4 homes/phone)","Computed from public DSHS data; full ownership disclosure (42 CFR 455.104) = records request"),
+ ("RF-09","Category 1: Program, Enrollment, and Network Anomalies","Phantom, mailbox, virtual, or questionable address","Use of mail drops as headquarters.","Partially Testable","DSHS address; USPS/commercial-address detection","AFHs are residences (low risk for AFH); relevant for HCBS agencies (HSS-analogue)","AFH model differs from MN HSS; flag mainly applies to in-home/agency HCBS"),
+ ("RF-10","Category 2: Billing and Claims Anomalies Requiring Internal Data","Impossible hours or overlapping services","Billing >24 hours in a day.","Not Publicly Testable","HCA claims data (not public)","Overlapping units per provider/day","Claims-level; records request / HCA program integrity"),
+ ("RF-11","Category 2: Billing and Claims Anomalies Requiring Internal Data","Maximum-unit or implausible service-volume billing","Consistently billing maximum units.","Not Publicly Testable","HCA claims data (not public)","Providers billing max daily units for all clients","Claims-level; records request"),
+ ("RF-12","Category 2: Billing and Claims Anomalies Requiring Internal Data","Out-of-state or impossible-location billing","Billing while provider is out of the country.","Not Publicly Testable","HCA claims + travel records (not public)","Billing while provider/recipient out of state","Claims+investigation; surfaces only via enforcement cases"),
+ ("RF-13","Category 2: Billing and Claims Anomalies Requiring Internal Data","Billing after death, absence, discharge, or ineligibility","Billing for hospitalized or deceased clients.","Not Publicly Testable","HCA claims vs death records (not public)","Claims after recipient DOD","Claims-level; SAO concurrent-enrollment audit method analogous"),
+ ("RF-14","Category 2: Billing and Claims Anomalies Requiring Internal Data","Cloned, missing, copied, or fabricated documentation","Identical care notes across beneficiaries.","Not Publicly Testable","Investigation reports (PDF narratives)","Read AFH investigation PDFs for documentation findings","Public per facility (586 facilities have investigations) but requires PDF reading"),
+ ("RF-15","Category 2: Billing and Claims Anomalies Requiring Internal Data","Stolen credentials or unauthorized professional IDs","Unauthorized use of clinician identifiers.","Not Publicly Testable","Investigation/enforcement narratives; AGO cases","Surfaces in enforcement cases (e.g., King Co imposter-nurse conviction 2026)","Public via court/AGO; not a dataset field"),
+ ("RF-16","Category 3: Oversight and Systemic Failures","Frontline referrals not acted upon or poorly triaged","Failure to act on credible referrals.","Partially Testable","SAO audits; complaint-to-action timing (not public)","SAO 2021: Division does not determine credibility of MCO/DSHS fraud allegations","Documented qualitatively in SAO audits; case-timeline detail = records request"),
+ ("RF-17","Category 3: Oversight and Systemic Failures","Payment holds, sanctions, exclusions, terminations, or enforcement history","Operating despite sanctions.","Partially Testable","DSHS RCS reports portal (enforcement letters); WA HCA termination/exclusion list; federal LEIE","DSHS RCS enforcement/sanction record (testable); HCA/LEIE exclusion cross-check (blocked by name linkage)","Sanction/enforcement component fully public (165 facilities w/ enforcement, 18 stop-placements). Exclusion cross-check returned 0 verified matches due to DBA-vs-legal-name gap (Section 6.6) -> partially testable overall."),
+ ("RF-18","Category 3: Oversight and Systemic Failures","Reactive oversight and insufficient capacity","Audits triggered only by complaints.","Fully Testable","SAO 2021/2023 audits; HHS-OIG","SAO 2021: no statewide fraud plan; no risk-based audit targeting; reactive posture","Strongly documented in SAO audits"),
+ ("RF-19","Category 3: Oversight and Systemic Failures","Program design vulnerability","Low-barrier programs without gatekeeping.","Testable (qualitative)","Statute/rule (RCW 70.128, WAC 388-76); HCBS waiver design","Assess low-barrier entry / records requirements for AFH & HCBS lines","Documented via rule analysis; AFH has licensing barrier (unlike MN HSS)"),
+ ("RF-20","Category 3: Oversight and Systemic Failures","Unresolved audit findings or weak corrective action","Failure to implement mandated corrections.","Fully Testable","SAO follow-up; audit recommendation status","SAO Medicaid PI is a recurring audit series (2021->2023->2025); track recommendation closure","Testable via SAO follow-up reports"),
+]
+mt=pd.DataFrame(rows,columns=["RF_ID","Domain","Red_Flag","Description_of_Alleged_Pattern",
+                              "WA_Public_Data_Testability","WA_Data_Source","WA_Signal_or_Metric","Status_Notes"])
+mt.to_csv(_os.path.join(OUT_DIR, "WA_RedFlag_Testability_Matrix_v2.csv"),index=False)
+
+
+# ---------- Summary ----------
+print("=== TESTABILITY SUMMARY ===")
+print(mt["WA_Public_Data_Testability"].value_counts())
+print("\n=== FACILITY-LEVEL FLAG COUNTS (3-county) ===")
+print("RF03 multi-home operator (>=2 homes/phone):",int(df["RF03_multi_home_operator"].sum()))
+print("RF08 network cluster (>=3 homes/phone):",int(df["RF08_network_cluster"].sum()))
+print("High complaint load (>=3 investigations):",int(df["high_complaint_load"].sum()))
+print("Has enforcement:",int(df["has_enforcement"].sum()))
+print("Has stop-placement:",int(df["has_stop_placement"].sum()))
+print("Has condition:",int(df["has_condition"].sum()))
+print("RF06 exclusion match (verified):",int(df["RF06_exclusion_match"].sum()))
+print("\nSaved testability matrix + facility review-priority indicators.")

@@ -1,0 +1,4 @@
+County,facilities,beds,avg_beds,w_enforcement,w_investigations,w_stop_placement,w_conditions,civil_fines,pct_of_3county_facilities,enforcement_rate_pct,investigation_rate_pct
+King,1795,10496,5.8473537604456824,81,298,7,17,92,51.9,4.5,16.6
+Pierce,1052,6149,5.845057034220532,61,190,8,11,66,30.4,5.8,18.1
+Spokane,610,3512,5.757377049180328,23,98,3,6,22,17.6,3.8,16.1

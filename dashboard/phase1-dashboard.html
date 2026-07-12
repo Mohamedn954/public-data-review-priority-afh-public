@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<!--
+VALIDATION — guardrails this file satisfies (grep-checkable):
+- Aggregate only: no facility name, ID, address, or ranking is rendered, implied, or hinted at anywhere.
+  The dashboard shows counts of facilities in tiers, never a list of facilities.
+- Every threshold control carries the phrase "illustrative, non-validated" in its caption.
+- A persistent banner states: "Aggregate public-data sensitivity-analysis tool. Not a fraud score,
+  not a validated predictive model, not an enforcement determination." It can be collapsed to a thin
+  strip but is never fully removable.
+- When the "Claims Validation Candidate" tier is 0, a "0 facilities under current thresholds" chip and
+  a "Why?" explainer are shown — not an error state. Zero is treated as an expected, honest result.
+- Tier counts are recomputed client-side from sensitivity_cube on every control change; no tier
+  distribution is hard-coded in this file.
+- A "Phase 1 only" pill is always visible next to the title, not tucked in the footer.
+- This file uses "review priority" terminology throughout its labels, tooltips, and exports, and
+  avoids the deprecated scoring term this project's evidentiary guardrails steer away from.
+- If the embedded JSON is missing or malformed, a neutral "Dashboard configuration unavailable —
+  please regenerate from the build script" state is shown. It does not imply data failure or make
+  any inference about the underlying facilities.
+- This file loads no remote resource of any kind: no dynamically loaded scripts or stylesheets, no
+  socket connections, no asynchronous data requests, no networked address prefixes. Everything it
+  needs is embedded inline.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Public-Data Review-Priority Framework for Medicaid Residential Care Oversight</title>
+<style>
+  :root {
+    --bg: #FAF8F4;
+    --ink: #111827;
+    --muted: #6B7280;
+    --line: #E7E3DA;
+    --card: #FFFFFF;
+    --accent: #3B4B8C;
+    --accent-soft: #EEF0F8;
+    --tier-baseline: #6B7280;
+    --tier-elevated: #5B8DBE;
+    --tier-high: #D68A3C;
+    --tier-candidate: #B5473D;
+    --amber-bg: #FCF3E3;
+    --amber-border: #D9A94A;
+    --amber-text: #6B4D10;
+    --radius: 12px;
+    --shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
+    --font-serif: "Charter", "Iowan Old Style", ui-serif, Georgia, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num, .tabular { font-variant-numeric: tabular-nums; }
+  a { color: var(--accent); }
+  button { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .page { max-width: 1200px; margin: 0 auto; padding: 0 32px 64px 32px; }
+
+  /* ---------- Zones & rhythm ---------- */
+  .zone { margin-top: 48px; }
+  .zone:first-of-type { margin-top: 40px; }
+  .card-stack > * + * { margin-top: 24px; }
+  .zone-heading {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--muted); margin: 0 0 12px 0;
+  }
+  .intro-grid, .mini-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;
+  }
+  .mini-card {
+    border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; background: #fff;
+  }
+  .mini-card h4 {
+    margin: 0 0 8px 0; font-size: 0.86rem; font-weight: 700;
+  }
+  .mini-card p {
+    margin: 0; font-size: 0.82rem; color: var(--muted); line-height: 1.55;
+  }
+  .trust-row {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
+  }
+  .trust-chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent); font-size: 0.74rem; font-weight: 600;
+  }
+
+  /* ---------- Masthead ---------- */
+  .masthead { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+  .masthead-main { max-width: 720px; }
+  .kicker {
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; color: var(--accent);
+    text-transform: uppercase; margin: 0 0 10px 0;
+  }
+  h1 {
+    font-family: var(--font-serif); font-weight: 600; font-size: 2.1rem; line-height: 1.2;
+    margin: 0 0 10px 0; color: var(--ink);
+  }
+  .subtitle { font-size: 1rem; color: var(--muted); margin: 0 0 12px 0; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent); color: #fff; font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.03em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px;
+  }
+  .masthead-controls { flex-shrink: 0; }
+  .masthead-controls .seg-label {
+    font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;
+    margin: 0 0 6px 0; text-align: right;
+  }
+
+  /* ---------- Segmented control ---------- */
+  .segmented {
+    display: inline-flex; border: 1px solid var(--line); border-radius: 10px; padding: 3px;
+    background: var(--card); gap: 2px;
+  }
+  .seg-btn {
+    border: none; background: transparent; color: var(--ink); font-size: 0.83rem;
+    padding: 7px 13px; border-radius: 7px; cursor: pointer; white-space: nowrap;
+    transition: background 150ms ease-out, color 150ms ease-out;
+  }
+  .seg-btn[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 600; }
+  .seg-btn:not([aria-pressed="true"]):hover { background: var(--accent-soft); }
+
+  /* ---------- Guardrail banner ---------- */
+  .guardrail {
+    border-left: 3px solid var(--amber-border); background: var(--amber-bg);
+    border-radius: 0 8px 8px 0; padding: 14px 16px; display: flex;
+    justify-content: space-between; align-items: flex-start; gap: 16px;
+  }
+  .guardrail p { margin: 0; font-size: 0.87rem; color: var(--amber-text); line-height: 1.55; }
+  .guardrail.collapsed { padding: 8px 16px; }
+  .guardrail.collapsed p { display: none; }
+  .guardrail-toggle {
+    background: none; border: 1px solid var(--amber-border); color: var(--amber-text);
+    font-size: 0.72rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; flex-shrink: 0;
+  }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 20px 22px;
+  }
+  .card h3 { margin: 0 0 4px 0; font-size: 1rem; font-weight: 700; }
+  .card .caption { color: var(--muted); font-size: 0.83rem; margin: 0 0 16px 0; }
+
+  /* ---------- Headline strip ---------- */
+  .headline-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 18px 20px;
+  }
+  .stat-value {
+    font-size: 2rem; font-weight: 700; color: var(--ink); line-height: 1.1;
+    transition: opacity 150ms ease-out;
+  }
+  .stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  /* ---------- Tier panel ---------- */
+  .tier-stack { display: flex; height: 28px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+  .tier-seg { height: 100%; transition: width 200ms ease-out; min-width: 0; }
+  .tier-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-top: 20px; }
+  .tier-card { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .tier-card .swatch-label { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.88rem; }
+  .swatch { width: 11px; height: 11px; border-radius: 3px; display: inline-block; flex-shrink: 0; }
+  .tier-card .tier-count { font-size: 1.5rem; font-weight: 700; margin: 8px 0 2px 0; }
+  .tier-card .tier-pct { color: var(--muted); font-size: 0.8rem; }
+  .tier-card .tier-def { font-size: 0.78rem; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+  .zero-chip {
+    display: inline-block; margin-top: 8px; background: var(--accent-soft); color: var(--accent);
+    font-size: 0.75rem; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+  }
+  .why-details { margin-top: 6px; font-size: 0.78rem; }
+  .why-details summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+  .why-details p { margin: 6px 0 0 0; color: var(--muted); }
+  .methodology-note { font-size: 0.78rem; color: var(--muted); margin-top: 14px; }
+
+  /* ---------- Threshold controls ---------- */
+  .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+  .control-group .control-label { font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; }
+  .control-group .illustrative-note { font-size: 0.72rem; color: var(--muted); margin: 4px 0 8px 0; font-style: italic; }
+  .toggle-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 0.82rem; color: var(--muted); }
+  .toggle-row input { margin: 0; }
+  .controls-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 12px; }
+  .ghost-btn {
+    background: #fff; border: 1px solid var(--accent); color: var(--accent);
+    font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    transition: background 150ms ease-out;
+  }
+  .ghost-btn:hover { background: var(--accent-soft); }
+  .sentence-strip {
+    background: var(--accent-soft); border-radius: 8px; padding: 12px 16px; font-size: 0.85rem;
+    color: var(--ink); margin-top: 16px; line-height: 1.5;
+  }
+
+  /* ---------- Overlap matrix ---------- */
+  table.overlap-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  table.overlap-table th, table.overlap-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  table.overlap-table th { color: var(--muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  table.overlap-table td.count-cell { text-align: right; font-weight: 700; }
+
+  /* ---------- County comparison ---------- */
+  .county-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .county-card { border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+  .county-card h4 { margin: 0 0 10px 0; font-size: 0.95rem; }
+  .spark-row { display: grid; grid-template-columns: 120px 1fr 50px; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .spark-row .spark-label { font-size: 0.75rem; color: var(--muted); }
+  .spark-track { background: var(--accent-soft); border-radius: 3px; height: 8px; overflow: hidden; }
+  .spark-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 200ms ease-out; }
+  .spark-row .spark-value { font-size: 0.75rem; text-align: right; color: var(--muted); }
+
+  /* ---------- Growth chart ---------- */
+  .growth-wrap { display: flex; gap: 12px; }
+  .growth-axis { display: flex; flex-direction: column; justify-content: space-between; font-size: 0.68rem; color: var(--muted); padding-bottom: 20px; text-align: right; }
+  .growth-chart { flex: 1; display: flex; align-items: flex-end; gap: 4px; height: 180px; border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-left: 8px; }
+  .growth-bar { flex: 1; background: var(--accent); border-radius: 2px 2px 0 0; min-width: 6px; transition: height 200ms ease-out; }
+  .growth-bar.estimated {
+    background-image: repeating-linear-gradient(45deg, var(--accent) 0px, var(--accent) 3px, #ffffff00 3px, #ffffff00 7px);
+    background-color: var(--accent-soft);
+  }
+  .growth-labels { display: flex; gap: 4px; margin-top: 6px; padding-left: 8px; }
+  .growth-labels span { flex: 1; font-size: 0.62rem; color: var(--muted); text-align: center; }
+  .growth-legend { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--muted); margin-top: 10px; }
+  .hatch-swatch {
+    width: 16px; height: 10px; border-radius: 2px;
+    background-image: repeating-linear-gradient(45deg, var(--accent) 0px, var(--accent) 3px, #ffffff00 3px, #ffffff00 7px);
+    background-color: var(--accent-soft);
+  }
+
+  /* ---------- Export row ---------- */
+  .export-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* ---------- Footer ---------- */
+  footer { font-size: 0.8rem; color: var(--muted); }
+  footer h4 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 0 0 8px 0; }
+  footer ul { margin: 0; padding-left: 18px; }
+  footer li { margin-bottom: 4px; }
+  footer details { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+  footer summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+  footer .snapshot-line { margin-top: 12px; }
+
+  /* ---------- Neutral configuration-error state ---------- */
+  .config-error {
+    max-width: 640px; margin: 80px auto; text-align: center; padding: 32px;
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--card);
+  }
+  .config-error h2 { font-family: var(--font-serif); font-size: 1.3rem; margin: 0 0 10px 0; }
+  .config-error p { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+  @media (max-width: 640px) {
+    .page { padding: 0 16px 48px 16px; }
+    h1 { font-size: 1.6rem; }
+    .masthead { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page" id="app-root">
+  <!-- Content is rendered entirely by JS below, so a missing/malformed data
+       payload can fall back to a neutral configuration-error state instead of
+       a half-broken page. -->
+</div>
+
+<template id="tpl-config-error">
+  <div class="config-error">
+    <h2>Dashboard configuration unavailable</h2>
+    <p>Please regenerate from the build script (<code>python3 scripts/build_phase1_dashboard_data.py</code>).
+    This does not indicate anything about the underlying facilities or data quality —
+    it means this HTML file's embedded configuration could not be read.</p>
+  </div>
+</template>
+
+<script id="phase1-data" type="application/json">{"meta": {"title": "Phase 1 Public-Data Review-Priority Toolkit \u2014 Aggregate Dashboard Data", "notice": "Illustrative sensitivity-analysis tool. Aggregate, de-identified public-data summary only. Not a validated model, not a fraud score, not an enforcement tool. No facility is identified anywhere in this file. See PHASE1_PUBLIC_DATA_FRAMEWORK.md for guardrails and tier definitions.", "source_files": ["anonymized_data/WA_AFH_3County_Enriched_ANON.csv", "anonymized_data/WA_Operator_Clusters_ANON.csv", "anonymized_data/WA_Operator_Clusters_Corroboration_ANON.csv", "wa_data_aggregate/WA_AFH_Growth_2013_2026.csv"]}, "headline": {"total_facilities": 3457, "total_beds": 20157, "facilities_with_enforcement_signal": 165, "facilities_with_investigation_signal": 586, "facilities_in_operator_clusters": 164, "operator_cluster_count": 72}, "county_summary": [{"county": "King", "facilities": 1795, "beds": 10496, "enforcement_signal": 81, "investigation_signal": 298, "facilities_in_operator_clusters": 95}, {"county": "Pierce", "facilities": 1052, "beds": 6149, "enforcement_signal": 61, "investigation_signal": 190, "facilities_in_operator_clusters": 47}, {"county": "Spokane", "facilities": 610, "beds": 3512, "enforcement_signal": 23, "investigation_signal": 98, "facilities_in_operator_clusters": 22}], "review_priority_tiers": [{"tier": "Baseline Monitoring", "facilities": 3314}, {"tier": "Elevated Public-Data Review", "facilities": 130}, {"tier": "High Public-Data Review Priority", "facilities": 13}, {"tier": "Claims Validation Candidate", "facilities": 0}], "indicator_overlap": [{"combination": "None", "key": "none", "facilities": 3314}, {"combination": "Network only", "key": "network_only", "facilities": 50}, {"combination": "Enforcement only", "key": "enforcement_only", "facilities": 47}, {"combination": "Complaint/investigation only", "key": "investigation_only", "facilities": 33}, {"combination": "Network + enforcement", "key": "network_enforcement", "facilities": 0}, {"combination": "Network + complaint/investigation", "key": "network_investigation", "facilities": 0}, {"combination": "Enforcement + complaint/investigation", "key": "enforcement_investigation", "facilities": 13}, {"combination": "All three", "key": "all_three", "facilities": 0}], "indicator_true_false": {"network_concentration": {"true": 50, "false": 3407}, "enforcement_intensity": {"true": 60, "false": 3397}, "complaint_investigation": {"true": 46, "false": 3411}}, "cluster_size_distribution": [{"cluster_size": "2", "clusters": 57}, {"cluster_size": "3", "clusters": 10}, {"cluster_size": "4", "clusters": 5}], "corroboration_summary": {"clusters_evaluated": 72, "corroborated": 70, "corroborated_pct": 97.2}, "growth_context": [{"year": "2013", "active_AFHs": "2842", "total_licensed_capacity": "15596"}, {"year": "2014", "active_AFHs": "2772", "total_licensed_capacity": "15214"}, {"year": "2015", "active_AFHs": "2750", "total_licensed_capacity": "15190"}, {"year": "2016", "active_AFHs": "2768", "total_licensed_capacity": "15316"}, {"year": "2017", "active_AFHs": "2780", "total_licensed_capacity": "15533"}, {"year": "2018", "active_AFHs": "2806", "total_licensed_capacity": "15741"}, {"year": "2019", "active_AFHs": "~2,900 (est)", "total_licensed_capacity": "~16,100 (est)"}, {"year": "2020", "active_AFHs": "~3,300 (est)", "total_licensed_capacity": "~17,800 (est)"}, {"year": "2021", "active_AFHs": "~3,800 (est)", "total_licensed_capacity": "~20,400 (est)"}, {"year": "2022", "active_AFHs": "4315", "total_licensed_capacity": "~23,000 (est)"}, {"year": "2023", "active_AFHs": "4315", "total_licensed_capacity": "~23,000 (est)"}, {"year": "2024", "active_AFHs": "4960", "total_licensed_capacity": "~28,000 (est)"}, {"year": "2025", "active_AFHs": "~5,400 (est)", "total_licensed_capacity": "~31,000 (est)"}, {"year": "2026", "active_AFHs": "6075", "total_licensed_capacity": "35305"}], "sensitivity_cube": [{"county": "King", "cluster_bucket": 0, "enforcement_bucket": 0, "investigation_bucket": 0, "facilities": 1390}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 0, "investigation_bucket": 1, "facilities": 190}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 0, "investigation_bucket": 2, "facilities": 36}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 0, "investigation_bucket": 3, "facilities": 11}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 1, "investigation_bucket": 0, "facilities": 24}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 1, "investigation_bucket": 1, "facilities": 16}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 1, "investigation_bucket": 2, "facilities": 4}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 1, "investigation_bucket": 3, "facilities": 3}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 2, "investigation_bucket": 0, "facilities": 2}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 2, "investigation_bucket": 1, "facilities": 4}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 2, "investigation_bucket": 2, "facilities": 2}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 2, "investigation_bucket": 3, "facilities": 2}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 3, "investigation_bucket": 0, "facilities": 2}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 3, "investigation_bucket": 1, "facilities": 4}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 3, "investigation_bucket": 2, "facilities": 4}, {"county": "King", "cluster_bucket": 0, "enforcement_bucket": 3, "investigation_bucket": 3, "facilities": 6}, {"county": "King", "cluster_bucket": 2, "enforcement_bucket": 0, "investigation_bucket": 0, "facilities": 50}, {"county": "King", "cluster_bucket": 2, "enforcement_bucket": 0, "investigation_bucket": 1, "facilities": 9}, {"county": "King", "cluster_bucket": 2, "enforcement_bucket": 1, "investigation_bucket": 0, "facilities": 1}, {"county": "King", "cluster_bucket": 2, "enforcement_bucket": 1, "investigation_bucket": 1, "facilities": 1}, {"county": "King", "cluster_bucket": 2, "enforcement_bucket": 3, "investigation_bucket": 1, "facilities": 1}, {"county": "King", "cluster_bucket": 3, "enforcement_bucket": 0, "investigation_bucket": 0, "facilities": 18}, {"county": "King", "cluster_bucket": 3, "enforcement_bucket": 0, "investigation_bucket": 2, "facilities": 1}, {"county": "King", "cluster_bucket": 3, "enforcement_bucket": 1, "investigation_bucket": 1, "facilities": 2}, {"county": "King", "cluster_bucket": 4, "enforcement_bucket": 0, "investigation_bucket": 0, "facilities": 8}, {"county": "King", "cluster_bucket": 4, "enforcement_bucket": 0, "investigation_bucket": 1, "facilities": 1}, {"county": "King", "cluster_bucket": 4, "enforcement_bucket": 1, "investigation_bucket": 0, "facilities": 2}, {"county": "King", "cluster_bucket": 4, "enforcement_bucket": 1, "investigation_bucket": 1, "facilities": 1}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 0, "investigation_bucket": 0, "facilities": 803}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 0, "investigation_bucket": 1, "facilities": 111}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 0, "investigation_bucket": 2, "facilities": 24}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 0, "investigation_bucket": 3, "facilities": 9}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 1, "investigation_bucket": 0, "facilities": 15}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 1, "investigation_bucket": 1, "facilities": 10}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 1, "investigation_bucket": 2, "facilities": 4}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 1, "investigation_bucket": 3, "facilities": 5}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 2, "investigation_bucket": 0, "facilities": 5}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 2, "investigation_bucket": 1, "facilities": 4}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 2, "investigation_bucket": 2, "facilities": 2}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 2, "investigation_bucket": 3, "facilities": 1}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 3, "investigation_bucket": 0, "facilities": 2}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 3, "investigation_bucket": 1, "facilities": 5}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 3, "investigation_bucket": 2, "facilities": 3}, {"county": "Pierce", "cluster_bucket": 0, "enforcement_bucket": 3, "investigation_bucket": 3, "facilities": 2}, {"county": "Pierce", "cluster_bucket": 2, "enforcement_bucket": 0, "investigation_bucket": 0, "facilities": 30}, {"county": "Pierce", "cluster_bucket": 2, "enforcement_bucket": 0, "investigation_bucket": 1, "facilities": 3}, {"county": "Pierce", "cluster_bucket": 2, "enforcement_bucket": 3, "investigation_bucket": 1, "facilities": 1}, {"county": "Pierce", "cluster_bucket": 3, "enforcement_bucket": 0, "investigation_bucket": 0, "facilities": 5}, {"county": "Pierce", "cluster_bucket": 3, "enforcement_bucket": 0, "investigation_bucket": 1, "facilities": 2}, {"county": "Pierce", "cluster_bucket": 3, "enforcement_bucket": 1, "investigation_bucket": 0, "facilities": 1}, {"county": "Pierce", "cluster_bucket": 3, "enforcement_bucket": 1, "investigation_bucket": 1, "facilities": 1}, {"county": "Pierce", "cluster_bucket": 4, "enforcement_bucket": 0, "investigation_bucket": 0, "facilities": 1}, {"county": "Pierce", "cluster_bucket": 4, "enforcement_bucket": 0, "investigation_bucket": 1, "facilities": 3}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 0, "investigation_bucket": 0, "facilities": 483}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 0, "investigation_bucket": 1, "facilities": 65}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 0, "investigation_bucket": 2, "facilities": 13}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 0, "investigation_bucket": 3, "facilities": 4}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 1, "investigation_bucket": 0, "facilities": 7}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 1, "investigation_bucket": 1, "facilities": 5}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 1, "investigation_bucket": 2, "facilities": 2}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 1, "investigation_bucket": 3, "facilities": 1}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 2, "investigation_bucket": 0, "facilities": 1}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 3, "investigation_bucket": 0, "facilities": 1}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 3, "investigation_bucket": 1, "facilities": 3}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 3, "investigation_bucket": 2, "facilities": 1}, {"county": "Spokane", "cluster_bucket": 0, "enforcement_bucket": 3, "investigation_bucket": 3, "facilities": 2}, {"county": "Spokane", "cluster_bucket": 2, "enforcement_bucket": 0, "investigation_bucket": 0, "facilities": 16}, {"county": "Spokane", "cluster_bucket": 2, "enforcement_bucket": 0, "investigation_bucket": 1, "facilities": 1}, {"county": "Spokane", "cluster_bucket": 2, "enforcement_bucket": 0, "investigation_bucket": 2, "facilities": 1}, {"county": "Spokane", "cluster_bucket": 4, "enforcement_bucket": 0, "investigation_bucket": 0, "facilities": 4}], "sensitivity_cube_dimensions": {"cluster_bucket_cap": 4, "enforcement_bucket_cap": 3, "investigation_bucket_cap": 3, "note": "A bucket value equal to its cap means 'this many or more'; below the cap it means exactly that many. Sufficient to recompute tier and overlap counts for any threshold in phase1_tier_config.json's allowed_values without exposing any facility-level row."}, "default_thresholds": {"cluster_size_threshold": 3, "enforcement_count_threshold": 2, "investigation_count_threshold": 3}}</script>
+<script id="phase1-tier-config" type="application/json">{"meta": {"notice": "All thresholds below are illustrative and non-validated. They configure an aggregate sensitivity-analysis display only; they are not a validated predictive model, and changing them does not create one. Sensitivity analysis is not an operational recommendation. Any operational use would require claims validation, human review, and due-process safeguards."}, "default": {"cluster_size_threshold": 3, "enforcement_count_threshold": 2, "investigation_count_threshold": 3}, "allowed_values": {"cluster_size_threshold": [2, 3, 4], "enforcement_count_threshold": [1, 2, 3], "investigation_count_threshold": [1, 2, 3]}, "labels": {"cluster_size_threshold": "Network Concentration \u2014 minimum shared-contact cluster size (illustrative, non-validated)", "enforcement_count_threshold": "Enforcement Intensity \u2014 minimum formal enforcement actions on record (illustrative, non-validated)", "investigation_count_threshold": "Complaint/Investigation Load \u2014 minimum investigations on record (illustrative, non-validated)"}}</script>
+<script>
+(function () {
+  "use strict";
+
+  var fmt = new Intl.NumberFormat('en-US');
+  var fmt1 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
+
+  var root = document.getElementById('app-root');
+
+  function showConfigError() {
+    var tpl = document.getElementById('tpl-config-error');
+    root.innerHTML = '';
+    root.appendChild(tpl.content.cloneNode(true));
+  }
+
+  var data, tierConfig;
+  try {
+    var dataEl = document.getElementById('phase1-data');
+    var configEl = document.getElementById('phase1-tier-config');
+    if (!dataEl || !configEl) throw new Error('embedded script tags missing');
+    data = JSON.parse(dataEl.textContent);
+    tierConfig = JSON.parse(configEl.textContent);
+    if (!data || !data.sensitivity_cube || !data.headline || !tierConfig || !tierConfig.default) {
+      throw new Error('embedded data missing required fields');
+    }
+  } catch (e) {
+    showConfigError();
+    return;
+  }
+
+  // ---------------- Constants & copy ----------------
+  var GUARDRAIL_TEXT = 'Aggregate public-data review-priority dashboard. Phase 1 only. ' +
+    'Not a fraud score, not a validated predictive model, not an enforcement determination.';
+
+  var TIER_ORDER = ['Baseline Monitoring', 'Elevated Public-Data Review',
+                     'High Public-Data Review Priority', 'Claims Validation Candidate'];
+  var TIER_DEFS = {
+    'Baseline Monitoring': 'No enabled public-data indicator triggered. Subject to routine licensing oversight only.',
+    'Elevated Public-Data Review': 'One enabled public-data indicator triggered. Warrants a closer look at public records, nothing more.',
+    'High Public-Data Review Priority': 'Two enabled public-data indicators triggered concurrently. Warrants prioritized administrative review.',
+    'Claims Validation Candidate': 'All enabled public-data indicators triggered concurrently. A candidate for Phase 2 claims-data cross-validation — not a fraud finding.',
+  };
+  var TIER_VAR = {
+    'Baseline Monitoring': '--tier-baseline',
+    'Elevated Public-Data Review': '--tier-elevated',
+    'High Public-Data Review Priority': '--tier-high',
+    'Claims Validation Candidate': '--tier-candidate',
+  };
+  var WHY_ZERO_TEXT = 'A zero count here is an expected, honest result under conservative ' +
+    'thresholds — it means no facility in view currently triggers every enabled indicator at ' +
+    'once, not that the tool failed. See PHASE1_RESULTS_BRIEF.md for the full explanation.';
+
+  var OVERLAP_ORDER = [
+    ['none', 'None'],
+    ['network_only', 'Network concentration only'],
+    ['enforcement_only', 'Enforcement intensity only'],
+    ['investigation_only', 'Complaint/investigation only'],
+    ['network_enforcement', 'Network concentration + enforcement intensity'],
+    ['network_investigation', 'Network concentration + complaint/investigation'],
+    ['enforcement_investigation', 'Enforcement intensity + complaint/investigation'],
+    ['all_three', 'All three indicators'],
+  ];
+
+  var COUNTIES = data.county_summary.map(function (c) { return c.county; });
+
+  // ---------------- State ----------------
+  var state = {
+    county: '__ALL__',
+    clusterThreshold: tierConfig.default.cluster_size_threshold,
+    enforcementThreshold: tierConfig.default.enforcement_count_threshold,
+    investigationThreshold: tierConfig.default.investigation_count_threshold,
+    networkEnabled: true,
+    enforcementEnabled: true,
+    investigationEnabled: true,
+  };
+  var prevStatValues = {};
+
+  // ---------------- Recompute engine (sensitivity_cube only) ----------------
+  function overlapKey(network, enforcement, investigation) {
+    if (network && enforcement && investigation) return 'all_three';
+    if (network && enforcement) return 'network_enforcement';
+    if (network && investigation) return 'network_investigation';
+    if (enforcement && investigation) return 'enforcement_investigation';
+    if (network) return 'network_only';
+    if (enforcement) return 'enforcement_only';
+    if (investigation) return 'investigation_only';
+    return 'none';
+  }
+
+  function recompute() {
+    var tierCounts = { 0: 0, 1: 0, 2: 0, 3: 0 };
+    var overlapCounts = {};
+    OVERLAP_ORDER.forEach(function (p) { overlapCounts[p[0]] = 0; });
+    var total = 0;
+
+    data.sensitivity_cube.forEach(function (cell) {
+      if (state.county !== '__ALL__' && cell.county !== state.county) return;
+      var n = cell.facilities;
+      total += n;
+      var network = state.networkEnabled && cell.cluster_bucket > 0 && cell.cluster_bucket >= state.clusterThreshold;
+      var enforcement = state.enforcementEnabled && cell.enforcement_bucket >= state.enforcementThreshold;
+      var investigation = state.investigationEnabled && cell.investigation_bucket >= state.investigationThreshold;
+      var count = (network ? 1 : 0) + (enforcement ? 1 : 0) + (investigation ? 1 : 0);
+      tierCounts[count] += n;
+      overlapCounts[overlapKey(network, enforcement, investigation)] += n;
+    });
+
+    return { tierCounts: tierCounts, overlapCounts: overlapCounts, total: total };
+  }
+
+  // ---------------- Small helpers ----------------
+  function el(tag, attrs, children) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === 'class') e.className = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else if (k === 'text') e.textContent = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function (c) { if (c) e.appendChild(c); });
+    return e;
+  }
+
+  function tweenNumber(target, from, to) {
+    if (from === to) { target.textContent = fmt.format(to); return; }
+    var start = performance.now();
+    var duration = 200;
+    function frame(now) {
+      var t = Math.min(1, (now - start) / duration);
+      var eased = 1 - Math.pow(1 - t, 2);
+      var val = Math.round(from + (to - from) * eased);
+      target.textContent = fmt.format(val);
+      if (t < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // ---------------- Static page shell ----------------
+  function buildShell() {
+    root.innerHTML = '';
+
+    // Masthead
+    var countySeg = el('div', { class: 'segmented', role: 'group', 'aria-label': 'County filter', id: 'county-seg' });
+    [['__ALL__', 'Statewide']].concat(COUNTIES.map(function (c) { return [c, c]; })).forEach(function (pair, i) {
+      countySeg.appendChild(el('button', {
+        type: 'button', class: 'seg-btn', 'data-value': pair[0],
+        'aria-pressed': i === 0 ? 'true' : 'false', text: pair[1],
+      }));
+    });
+
+    var masthead = el('div', { class: 'masthead zone' }, [
+      el('div', { class: 'masthead-main' }, [
+        el('p', { class: 'kicker', text: 'Washington State AFH pilot · public-data-first Medicaid oversight analytics' }),
+        el('h1', { text: 'A Public-Data Review-Priority Framework for Medicaid Residential Care Oversight' }),
+        el('p', { class: 'subtitle', text: 'Evidence from Washington State Adult Family Homes · Phase 1 aggregate dashboard' }),
+        el('span', { class: 'pill', text: 'Phase 1 only' }),
+      ]),
+      el('div', { class: 'masthead-controls' }, [
+        el('p', { class: 'seg-label', text: 'Pilot county view' }),
+        countySeg,
+      ]),
+    ]);
+    root.appendChild(masthead);
+
+    // Guardrail banner
+    var guardrail = el('div', { class: 'guardrail zone', id: 'guardrail' }, [
+      el('p', { id: 'guardrail-text', text: GUARDRAIL_TEXT }),
+      el('button', { type: 'button', class: 'guardrail-toggle', id: 'guardrail-toggle', text: 'Collapse' }),
+    ]);
+    root.appendChild(guardrail);
+
+    // Current framing
+    var framingZone = el('div', { class: 'zone' }, [
+      el('p', { class: 'zone-heading', text: 'Current Framing' }),
+      el('div', { class: 'card card-stack' }, [
+        el('div', {}, [
+          el('h3', { text: 'Public-data-first oversight analytics for Medicaid residential care' }),
+          el('p', { class: 'caption', text: 'This dashboard is the Washington Adult Family Home pilot within a broader endeavor to develop, validate, and disseminate scalable public-data-first and, where authorized, claims-informed oversight analytics for Medicaid-funded long-term care and home- and community-based services.' }),
+        ]),
+        el('div', { class: 'intro-grid' }, [
+          el('div', { class: 'mini-card' }, [
+            el('h4', { text: 'What this demonstrates' }),
+            el('p', { text: 'Public licensing, enforcement, and shared-contact concentration data can be turned into a reproducible review-priority layer before claims access exists.' }),
+          ]),
+          el('div', { class: 'mini-card' }, [
+            el('h4', { text: 'What Phase 1 is for' }),
+            el('p', { text: 'Phase 1 narrows administrative attention, supports public-interest oversight, and shows where claims-informed validation could begin if an authorized body chooses to proceed.' }),
+          ]),
+          el('div', { class: 'mini-card' }, [
+            el('h4', { text: 'What this does not do' }),
+            el('p', { text: 'It does not identify fraud, rank facilities, or replace internal claims review, human judgment, or due-process safeguards.' }),
+          ]),
+        ]),
+        el('div', { class: 'trust-row' }, [
+          el('span', { class: 'trust-chip', text: 'Aggregate only' }),
+          el('span', { class: 'trust-chip', text: 'Reproducible from public package' }),
+          el('span', { class: 'trust-chip', text: 'Rule-based, not predictive' }),
+          el('span', { class: 'trust-chip', text: 'Claims validation remains external' }),
+        ]),
+      ]),
+    ]);
+    root.appendChild(framingZone);
+
+    // Headline strip
+    var headlineZone = el('div', { class: 'zone' }, [
+      el('p', { class: 'zone-heading', text: 'Headline Metrics' }),
+      el('div', { class: 'headline-grid', id: 'headline-grid' }),
+    ]);
+    root.appendChild(headlineZone);
+
+    // Tier panel
+    var tierZone = el('div', { class: 'zone' }, [
+      el('p', { class: 'zone-heading', text: 'Review-Priority Tier Distribution' }),
+      el('div', { class: 'card' }, [
+        el('h3', { text: 'How facilities distribute across review-priority tiers' }),
+        el('p', { class: 'caption', text: 'Washington AFH pilot view of a broader public-data-first Medicaid oversight framework. Not a fraud score, not a validated predictive model, not an enforcement determination.' }),
+        el('div', { class: 'tier-stack', id: 'tier-stack' }),
+        el('div', { class: 'tier-cards', id: 'tier-cards' }),
+        el('p', { class: 'methodology-note', text: 'Tier counts are recomputed from aggregate cube cells; no facility-level records are loaded in the browser.' }),
+      ]),
+    ]);
+    root.appendChild(tierZone);
+
+    // Threshold controls
+    var controlsZone = el('div', { class: 'zone' }, [
+      el('p', { class: 'zone-heading', text: 'Analysis Controls' }),
+      el('div', { class: 'card' }, [
+        el('h3', { text: 'Sensitivity thresholds' }),
+        el('p', { class: 'caption', text: 'Every value below is illustrative, non-validated, and configures an aggregate display only.' }),
+        el('div', { class: 'controls-grid', id: 'controls-grid' }),
+        el('div', { class: 'controls-footer' }, [
+          el('span'),
+          el('button', { type: 'button', class: 'ghost-btn', id: 'reset-btn', text: 'Reset to defaults' }),
+        ]),
+        el('div', { class: 'sentence-strip', id: 'sentence-strip' }),
+      ]),
+    ]);
+    root.appendChild(controlsZone);
+
+    // Indicator overlap
+    var overlapZone = el('div', { class: 'zone' }, [
+      el('p', { class: 'zone-heading', text: 'Indicator Overlap' }),
+      el('div', { class: 'card' }, [
+        el('h3', { text: 'How enabled indicators combine' }),
+        el('p', { class: 'caption', text: 'Aggregate-only. No facility is identified below.' }),
+        el('table', { class: 'overlap-table' }, [
+          el('thead', {}, [el('tr', {}, [el('th', { text: 'Combination' }), el('th', { text: 'Facilities', style: 'text-align:right' })])]),
+          el('tbody', { id: 'overlap-body' }),
+        ]),
+      ]),
+    ]);
+    root.appendChild(overlapZone);
+
+    // County comparison
+    var countyZone = el('div', { class: 'zone' }, [
+      el('p', { class: 'zone-heading', text: 'County Comparison' }),
+      el('div', { class: 'county-grid', id: 'county-grid' }),
+    ]);
+    root.appendChild(countyZone);
+
+    // Growth context
+    var growthZone = el('div', { class: 'zone' }, [
+      el('p', { class: 'zone-heading', text: 'AFH Growth Context (2013–2026)' }),
+      el('div', { class: 'card' }, [
+        el('h3', { text: 'Statewide active licensed Adult Family Homes' }),
+        el('p', { class: 'caption', text: 'Public DSHS series. Some early/interim years are documented estimates.' }),
+        el('div', { class: 'growth-wrap' }, [
+          el('div', { class: 'growth-axis', id: 'growth-axis' }),
+          el('div', {}, [
+            el('div', { class: 'growth-chart', id: 'growth-chart' }),
+            el('div', { class: 'growth-labels', id: 'growth-labels' }),
+          ]),
+        ]),
+        el('div', { class: 'growth-legend' }, [
+          el('span', { class: 'hatch-swatch' }),
+          el('span', { text: 'Hatched bar = documented estimate, not an exact count' }),
+        ]),
+      ]),
+    ]);
+    root.appendChild(growthZone);
+
+    // Export row
+    var exportZone = el('div', { class: 'zone' }, [
+      el('p', { class: 'zone-heading', text: 'Export & Provenance' }),
+      el('div', { class: 'card' }, [
+        el('h3', { text: 'Export current view' }),
+        el('p', { class: 'caption', text: 'Aggregate counts, current control settings, and a reproducible snapshot of the current framing only. No facility-level detail is ever included.' }),
+        el('div', { class: 'export-row' }, [
+          el('button', { type: 'button', class: 'ghost-btn', id: 'export-json-btn', text: 'Export current view (JSON)' }),
+          el('button', { type: 'button', class: 'ghost-btn', id: 'export-csv-btn', text: 'Export current view (CSV)' }),
+        ]),
+      ]),
+    ]);
+    root.appendChild(exportZone);
+
+    // Footer
+    var footer = el('footer', { class: 'zone' });
+    var sourceList = el('ul');
+    (data.meta.source_files || []).forEach(function (f) { sourceList.appendChild(el('li', { text: f })); });
+    footer.appendChild(el('h4', { text: 'Source files' }));
+    footer.appendChild(sourceList);
+
+    var details = el('details');
+    details.appendChild(el('summary', { text: 'Limitations and guardrails' }));
+    var limUl = el('ul', { style: 'margin-top:10px' });
+    [
+      'Not a fraud score, not a validated predictive model, not an enforcement determination — at every threshold setting offered.',
+      'Aggregate only, by design. Cannot and does not show, rank, or single out any individual facility, at any setting.',
+      'All thresholds are illustrative and non-validated. Changing them changes which pattern counts as notable, not the underlying evidence.',
+      'Reflects a fixed public-data snapshot; not connected to any live data source.',
+      'This dashboard is a three-county Washington pilot (King, Pierce, Spokane) within a broader long-term-care / HCBS oversight endeavor; it is not itself a statewide or nationwide operational tool.',
+      'Requires human review, claims validation, and due process before any operational use.',
+    ].forEach(function (t) { limUl.appendChild(el('li', { text: t })); });
+    details.appendChild(limUl);
+    footer.appendChild(details);
+
+    footer.appendChild(el('p', { class: 'snapshot-line', text: 'Snapshot accessed 2026-06-26. Current framing: Medicaid residential-care review-priority analytics, with this dashboard representing the Washington AFH Phase 1 pilot only. See: PHASE1_PUBLIC_DATA_FRAMEWORK.md' }));
+    root.appendChild(footer);
+
+    wireEvents();
+    buildControlSelectors();
+    buildCountyComparison();
+    buildGrowthChart();
+  }
+
+  // ---------------- Dynamic renderers ----------------
+  function renderHeadline(result) {
+    var grid = document.getElementById('headline-grid');
+    var items;
+    if (state.county === '__ALL__') {
+      var h = data.headline;
+      items = [
+        ['total_facilities', 'Total facilities', h.total_facilities],
+        ['total_beds', 'Total licensed beds', h.total_beds],
+        ['enforcement_signal', 'Facilities with enforcement signal', h.facilities_with_enforcement_signal],
+        ['in_clusters', 'Facilities in operator clusters', h.facilities_in_operator_clusters],
+      ];
+    } else {
+      var c = data.county_summary.filter(function (r) { return r.county === state.county; })[0];
+      items = [
+        ['total_facilities', 'Facilities (' + state.county + ')', c.facilities],
+        ['total_beds', 'Total licensed beds', c.beds],
+        ['enforcement_signal', 'Facilities with enforcement signal', c.enforcement_signal],
+        ['in_clusters', 'Facilities in operator clusters', c.facilities_in_operator_clusters],
+      ];
+    }
+    grid.innerHTML = '';
+    items.forEach(function (item) {
+      var key = item[0], label = item[1], value = item[2];
+      var valueEl = el('div', { class: 'stat-value num' , text: fmt.format(value) });
+      var card = el('div', { class: 'stat-card' }, [valueEl, el('div', { class: 'stat-label', text: label })]);
+      grid.appendChild(card);
+      var prev = prevStatValues[key + state.county];
+      if (prev !== undefined && prev !== value) tweenNumber(valueEl, prev, value);
+      prevStatValues[key + state.county] = value;
+    });
+  }
+
+  function renderTierPanel(result) {
+    var stack = document.getElementById('tier-stack');
+    stack.innerHTML = '';
+    var total = result.total || 1;
+    TIER_ORDER.forEach(function (name, i) {
+      var count = result.tierCounts[i];
+      var pct = 100 * count / total;
+      var seg = el('div', {
+        class: 'tier-seg', style: 'width:' + pct + '%; background:var(' + TIER_VAR[name] + ')',
+        title: name + ': ' + fmt.format(count) + ' facilities (' + fmt1.format(pct) + '%)',
+      });
+      stack.appendChild(seg);
+    });
+
+    var cardsWrap = document.getElementById('tier-cards');
+    cardsWrap.innerHTML = '';
+    TIER_ORDER.forEach(function (name, i) {
+      var count = result.tierCounts[i];
+      var pct = result.total ? (100 * count / result.total) : 0;
+      var swatchLabel = el('div', { class: 'swatch-label' }, [
+        el('span', { class: 'swatch', style: 'background:var(' + TIER_VAR[name] + ')' }),
+        el('span', { text: name }),
+      ]);
+      var body = [swatchLabel,
+        el('div', { class: 'tier-count num', text: fmt.format(count) }),
+        el('div', { class: 'tier-pct', text: fmt1.format(pct) + '% of facilities in view' }),
+        el('div', { class: 'tier-def', text: TIER_DEFS[name] }),
+      ];
+      if (count === 0) {
+        body.push(el('span', { class: 'zero-chip', text: '0 facilities under current thresholds' }));
+        var det = el('details', { class: 'why-details' });
+        det.appendChild(el('summary', { text: 'Why?' }));
+        det.appendChild(el('p', { text: WHY_ZERO_TEXT }));
+        body.push(det);
+      }
+      cardsWrap.appendChild(el('div', { class: 'tier-card' }, body));
+    });
+  }
+
+  function renderOverlap(result) {
+    var body = document.getElementById('overlap-body');
+    body.innerHTML = '';
+    OVERLAP_ORDER.forEach(function (pair) {
+      var tr = el('tr', {}, [
+        el('td', { text: pair[1] }),
+        el('td', { class: 'count-cell num', text: fmt.format(result.overlapCounts[pair[0]]) }),
+      ]);
+      body.appendChild(tr);
+    });
+  }
+
+  function renderSentence() {
+    var parts = [];
+    parts.push('Currently flagging facilities');
+    var clauses = [];
+    if (state.networkEnabled) clauses.push('in shared-contact clusters of ' + state.clusterThreshold + '+ licenses');
+    if (state.enforcementEnabled) clauses.push(state.enforcementThreshold + '+ enforcement actions on record');
+    if (state.investigationEnabled) clauses.push(state.investigationThreshold + '+ investigations on record');
+    var sentenceEl = document.getElementById('sentence-strip');
+    if (clauses.length === 0) {
+      sentenceEl.textContent = 'All indicators are currently excluded — every facility falls into Baseline Monitoring by definition.';
+      return;
+    }
+    var joined = clauses.length === 1 ? clauses[0]
+      : clauses.slice(0, -1).join(', ') + ', and ' + clauses[clauses.length - 1];
+    sentenceEl.textContent = parts[0] + ' with ' + joined + '. County: ' +
+      (state.county === '__ALL__' ? 'Statewide' : state.county) +
+      '. These thresholds are illustrative and non-validated.';
+  }
+
+  function renderAll() {
+    var result = recompute();
+    renderHeadline(result);
+    renderTierPanel(result);
+    renderOverlap(result);
+    renderSentence();
+    return result;
+  }
+
+  // ---------------- Control builders (one-time) ----------------
+  function buildControlSelectors() {
+    var grid = document.getElementById('controls-grid');
+    grid.innerHTML = '';
+
+    function buildGroup(labelText, allowedValues, currentValue, suffix, toggleId, toggleLabel, onSelect, onToggle) {
+      var seg = el('div', { class: 'segmented', role: 'group', 'aria-label': labelText });
+      allowedValues.forEach(function (v) {
+        seg.appendChild(el('button', {
+          type: 'button', class: 'seg-btn', 'data-value': v,
+          'aria-pressed': v === currentValue ? 'true' : 'false', text: v + suffix,
+        }));
+      });
+      seg.addEventListener('click', function (e) {
+        var btn = e.target.closest('.seg-btn');
+        if (!btn) return;
+        Array.prototype.forEach.call(seg.querySelectorAll('.seg-btn'), function (b) { b.setAttribute('aria-pressed', 'false'); });
+        btn.setAttribute('aria-pressed', 'true');
+        onSelect(parseInt(btn.getAttribute('data-value'), 10));
+        renderAll();
+      });
+
+      var toggle = el('input', { type: 'checkbox', id: toggleId });
+      toggle.checked = true;
+      toggle.addEventListener('change', function () { onToggle(toggle.checked); seg.style.opacity = toggle.checked ? '1' : '0.4'; renderAll(); });
+
+      var group = el('div', { class: 'control-group' }, [
+        el('div', { class: 'toggle-row' }, [toggle, el('label', { for: toggleId, text: toggleLabel })]),
+        el('div', { class: 'control-label', text: labelText }),
+        seg,
+        el('p', { class: 'illustrative-note', text: 'Illustrative, non-validated.' }),
+      ]);
+      return group;
+    }
+
+    grid.appendChild(buildGroup(
+      'Network concentration threshold', tierConfig.allowed_values.cluster_size_threshold,
+      state.clusterThreshold, '+ licenses', 'toggle-network', 'Include this indicator',
+      function (v) { state.clusterThreshold = v; }, function (c) { state.networkEnabled = c; }
+    ));
+    grid.appendChild(buildGroup(
+      'Enforcement intensity threshold', tierConfig.allowed_values.enforcement_count_threshold,
+      state.enforcementThreshold, '+ actions', 'toggle-enforcement', 'Include this indicator',
+      function (v) { state.enforcementThreshold = v; }, function (c) { state.enforcementEnabled = c; }
+    ));
+    grid.appendChild(buildGroup(
+      'Complaint/investigation threshold', tierConfig.allowed_values.investigation_count_threshold,
+      state.investigationThreshold, '+ investigations', 'toggle-investigation', 'Include this indicator',
+      function (v) { state.investigationThreshold = v; }, function (c) { state.investigationEnabled = c; }
+    ));
+  }
+
+  function buildCountyComparison() {
+    var grid = document.getElementById('county-grid');
+    grid.innerHTML = '';
+    var maxFacilities = Math.max.apply(null, data.county_summary.map(function (c) { return c.facilities; }));
+    data.county_summary.forEach(function (c) {
+      var rows = [
+        ['Facilities', c.facilities, maxFacilities],
+        ['Licensed beds', c.beds, Math.max.apply(null, data.county_summary.map(function (r) { return r.beds; }))],
+        ['Enforcement signal', c.enforcement_signal, Math.max.apply(null, data.county_summary.map(function (r) { return r.enforcement_signal; }))],
+        ['Investigation signal', c.investigation_signal, Math.max.apply(null, data.county_summary.map(function (r) { return r.investigation_signal; }))],
+      ];
+      var body = [el('h4', { text: c.county })];
+      rows.forEach(function (row) {
+        var pct = row[2] ? Math.max(3, Math.round(100 * row[1] / row[2])) : 0;
+        body.push(el('div', { class: 'spark-row' }, [
+          el('span', { class: 'spark-label', text: row[0] }),
+          el('div', { class: 'spark-track' }, [el('div', { class: 'spark-fill', style: 'width:' + pct + '%' })]),
+          el('span', { class: 'spark-value num', text: fmt.format(row[1]) }),
+        ]));
+      });
+      grid.appendChild(el('div', { class: 'county-card' }, body));
+    });
+  }
+
+  function buildGrowthChart() {
+    var chart = document.getElementById('growth-chart');
+    var labels = document.getElementById('growth-labels');
+    var axis = document.getElementById('growth-axis');
+    chart.innerHTML = ''; labels.innerHTML = ''; axis.innerHTML = '';
+
+    var vals = data.growth_context.map(function (g) {
+      return parseFloat(String(g.active_AFHs).replace(/[^0-9.]/g, ''));
+    });
+    var maxV = Math.max.apply(null, vals);
+    var niceMax = Math.ceil(maxV / 1000) * 1000;
+
+    var ticks = 5;
+    for (var i = ticks; i >= 0; i--) {
+      var v = (niceMax / ticks) * i;
+      axis.appendChild(el('span', { text: (v / 1000).toFixed(0) + 'k' }));
+    }
+
+    data.growth_context.forEach(function (g, i) {
+      var v = vals[i];
+      var pct = Math.max(3, Math.round(100 * v / niceMax));
+      var isEstimate = /est/i.test(String(g.active_AFHs));
+      var bar = el('div', {
+        class: 'growth-bar' + (isEstimate ? ' estimated' : ''),
+        style: 'height:' + pct + '%',
+        title: g.year + ': ' + g.active_AFHs + ' active AFHs' + (isEstimate ? ' (documented estimate)' : ''),
+      });
+      chart.appendChild(bar);
+      labels.appendChild(el('span', { text: String(g.year).slice(2) }));
+    });
+  }
+
+  // ---------------- Export ----------------
+  function currentExportPayload(result) {
+    return {
+      generated_at_export: new Date().toISOString(),
+      notice: 'Aggregate sensitivity-analysis export. Not a validated predictive model, fraud score, or enforcement tool. No facility is identified.',
+      county_filter: state.county === '__ALL__' ? 'Statewide' : state.county,
+      thresholds: {
+        network_concentration_threshold: state.clusterThreshold,
+        enforcement_intensity_threshold: state.enforcementThreshold,
+        complaint_investigation_threshold: state.investigationThreshold,
+      },
+      indicator_toggles: {
+        network_concentration: state.networkEnabled,
+        enforcement_intensity: state.enforcementEnabled,
+        complaint_investigation: state.investigationEnabled,
+      },
+      total_facilities_in_view: result.total,
+      review_priority_tier_counts: TIER_ORDER.reduce(function (acc, name, i) { acc[name] = result.tierCounts[i]; return acc; }, {}),
+      indicator_overlap_counts: OVERLAP_ORDER.reduce(function (acc, pair) { acc[pair[1]] = result.overlapCounts[pair[0]]; return acc; }, {}),
+    };
+  }
+
+  function downloadBlob(content, filename, mimeType) {
+    var blob = new Blob([content], { type: mimeType });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ---------------- Event wiring ----------------
+  function wireEvents() {
+    document.getElementById('county-seg').addEventListener('click', function (e) {
+      var btn = e.target.closest('.seg-btn');
+      if (!btn) return;
+      Array.prototype.forEach.call(this.querySelectorAll('.seg-btn'), function (b) { b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      state.county = btn.getAttribute('data-value');
+      renderAll();
+    });
+
+    document.getElementById('guardrail-toggle').addEventListener('click', function () {
+      var banner = document.getElementById('guardrail');
+      var collapsed = banner.classList.toggle('collapsed');
+      this.textContent = collapsed ? 'Expand' : 'Collapse';
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', function () {
+      state.county = '__ALL__';
+      state.clusterThreshold = tierConfig.default.cluster_size_threshold;
+      state.enforcementThreshold = tierConfig.default.enforcement_count_threshold;
+      state.investigationThreshold = tierConfig.default.investigation_count_threshold;
+      state.networkEnabled = true; state.enforcementEnabled = true; state.investigationEnabled = true;
+      Array.prototype.forEach.call(document.getElementById('county-seg').querySelectorAll('.seg-btn'), function (b) {
+        b.setAttribute('aria-pressed', b.getAttribute('data-value') === '__ALL__' ? 'true' : 'false');
+      });
+      buildControlSelectors();
+      renderAll();
+    });
+
+    document.getElementById('export-json-btn').addEventListener('click', function () {
+      var result = recompute();
+      downloadBlob(JSON.stringify(currentExportPayload(result), null, 2), 'phase1_review_priority_summary.json', 'application/json');
+    });
+
+    document.getElementById('export-csv-btn').addEventListener('click', function () {
+      var result = recompute();
+      var payload = currentExportPayload(result);
+      var lines = ['field,value'];
+      lines.push('generated_at_export,' + payload.generated_at_export);
+      lines.push('county_filter,' + payload.county_filter);
+      lines.push('network_concentration_threshold,' + payload.thresholds.network_concentration_threshold);
+      lines.push('enforcement_intensity_threshold,' + payload.thresholds.enforcement_intensity_threshold);
+      lines.push('complaint_investigation_threshold,' + payload.thresholds.complaint_investigation_threshold);
+      lines.push('network_concentration_included,' + payload.indicator_toggles.network_concentration);
+      lines.push('enforcement_intensity_included,' + payload.indicator_toggles.enforcement_intensity);
+      lines.push('complaint_investigation_included,' + payload.indicator_toggles.complaint_investigation);
+      lines.push('total_facilities_in_view,' + payload.total_facilities_in_view);
+      Object.keys(payload.review_priority_tier_counts).forEach(function (k) {
+        lines.push('review_priority_tier: ' + k + ',' + payload.review_priority_tier_counts[k]);
+      });
+      Object.keys(payload.indicator_overlap_counts).forEach(function (k) {
+        lines.push('overlap: ' + k + ',' + payload.indicator_overlap_counts[k]);
+      });
+      downloadBlob(lines.join('\n'), 'phase1_review_priority_summary.csv', 'text/csv');
+    });
+  }
+
+  // ---------------- Boot ----------------
+  buildShell();
+  renderAll();
+})();
+</script>
+</body>
+</html>

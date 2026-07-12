@@ -1,0 +1,68 @@
+name: CI
+
+# Runs three steps on every push and PR to main: verify headline numbers,
+# regenerate the Phase 1 dashboard outputs, and validate Phase 1 guardrails.
+# All three use only the Python standard library, so this workflow does not
+# need to install any third-party packages. The Oregon replication study
+# lives in its own repository (public-data-review-priority-oregon-public)
+# with its own CI running verify_oregon_numbers.py there.
+#
+#   - verify_headline_numbers.py    checks that the anonymized data package
+#                                   still supports every headline aggregate
+#                                   reported in the manuscript
+#                                   (facilities, beds, county split,
+#                                   enforcement, investigations, clusters,
+#                                   max cluster size).
+#
+#   - build_phase1_dashboard_data.py  regenerates the Phase 1 dashboard's
+#                                   JSON/HTML outputs from the anonymized
+#                                   data package, so the check below runs
+#                                   against a freshly built artifact rather
+#                                   than a possibly-stale committed copy.
+#
+#   - validate_phase1_toolkit.py    checks that the Phase 1 dashboard
+#                                   outputs stay aggregate-only and
+#                                   de-identified: tier and county totals
+#                                   reconcile, no facility IDs appear
+#                                   anywhere in the JSON or HTML, no raw
+#                                   identifying column names leak, no
+#                                   prohibited terms appear outside
+#                                   approved guardrail language, and the
+#                                   dashboard HTML makes zero external
+#                                   network references.
+#
+# If any check fails, CI turns red and the failure is visible on the
+# repo's Actions tab and on every PR. The build is intentionally minimal:
+# no matrix, no third-party actions beyond checkout and setup-python, no
+# hosted secrets.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Verify headline numbers and Phase 1 guardrails
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify manuscript headline numbers against anonymized_data/
+        run: python3 scripts/verify_headline_numbers.py
+
+      - name: Regenerate Phase 1 dashboard outputs (stdlib-only)
+        run: python3 scripts/build_phase1_dashboard_data.py
+
+      - name: Validate Phase 1 toolkit privacy and guardrails
+        run: python3 scripts/validate_phase1_toolkit.py

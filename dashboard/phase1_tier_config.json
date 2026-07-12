@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "notice": "All thresholds below are illustrative and non-validated. They configure an aggregate sensitivity-analysis display only; they are not a validated predictive model, and changing them does not create one. Sensitivity analysis is not an operational recommendation. Any operational use would require claims validation, human review, and due-process safeguards."
+  },
+  "default": {
+    "cluster_size_threshold": 3,
+    "enforcement_count_threshold": 2,
+    "investigation_count_threshold": 3
+  },
+  "allowed_values": {
+    "cluster_size_threshold": [
+      2,
+      3,
+      4
+    ],
+    "enforcement_count_threshold": [
+      1,
+      2,
+      3
+    ],
+    "investigation_count_threshold": [
+      1,
+      2,
+      3
+    ]
+  },
+  "labels": {
+    "cluster_size_threshold": "Network Concentration \u2014 minimum shared-contact cluster size (illustrative, non-validated)",
+    "enforcement_count_threshold": "Enforcement Intensity \u2014 minimum formal enforcement actions on record (illustrative, non-validated)",
+    "investigation_count_threshold": "Complaint/Investigation Load \u2014 minimum investigations on record (illustrative, non-validated)"
+  }
+}

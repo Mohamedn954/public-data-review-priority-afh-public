@@ -1,0 +1,714 @@
+{
+  "meta": {
+    "title": "Phase 1 Public-Data Review-Priority Toolkit \u2014 Aggregate Dashboard Data",
+    "notice": "Illustrative sensitivity-analysis tool. Aggregate, de-identified public-data summary only. Not a validated model, not a fraud score, not an enforcement tool. No facility is identified anywhere in this file. See PHASE1_PUBLIC_DATA_FRAMEWORK.md for guardrails and tier definitions.",
+    "source_files": [
+      "anonymized_data/WA_AFH_3County_Enriched_ANON.csv",
+      "anonymized_data/WA_Operator_Clusters_ANON.csv",
+      "anonymized_data/WA_Operator_Clusters_Corroboration_ANON.csv",
+      "wa_data_aggregate/WA_AFH_Growth_2013_2026.csv"
+    ]
+  },
+  "headline": {
+    "total_facilities": 3457,
+    "total_beds": 20157,
+    "facilities_with_enforcement_signal": 165,
+    "facilities_with_investigation_signal": 586,
+    "facilities_in_operator_clusters": 164,
+    "operator_cluster_count": 72
+  },
+  "county_summary": [
+    {
+      "county": "King",
+      "facilities": 1795,
+      "beds": 10496,
+      "enforcement_signal": 81,
+      "investigation_signal": 298,
+      "facilities_in_operator_clusters": 95
+    },
+    {
+      "county": "Pierce",
+      "facilities": 1052,
+      "beds": 6149,
+      "enforcement_signal": 61,
+      "investigation_signal": 190,
+      "facilities_in_operator_clusters": 47
+    },
+    {
+      "county": "Spokane",
+      "facilities": 610,
+      "beds": 3512,
+      "enforcement_signal": 23,
+      "investigation_signal": 98,
+      "facilities_in_operator_clusters": 22
+    }
+  ],
+  "review_priority_tiers": [
+    {
+      "tier": "Baseline Monitoring",
+      "facilities": 3314
+    },
+    {
+      "tier": "Elevated Public-Data Review",
+      "facilities": 130
+    },
+    {
+      "tier": "High Public-Data Review Priority",
+      "facilities": 13
+    },
+    {
+      "tier": "Claims Validation Candidate",
+      "facilities": 0
+    }
+  ],
+  "indicator_overlap": [
+    {
+      "combination": "None",
+      "key": "none",
+      "facilities": 3314
+    },
+    {
+      "combination": "Network only",
+      "key": "network_only",
+      "facilities": 50
+    },
+    {
+      "combination": "Enforcement only",
+      "key": "enforcement_only",
+      "facilities": 47
+    },
+    {
+      "combination": "Complaint/investigation only",
+      "key": "investigation_only",
+      "facilities": 33
+    },
+    {
+      "combination": "Network + enforcement",
+      "key": "network_enforcement",
+      "facilities": 0
+    },
+    {
+      "combination": "Network + complaint/investigation",
+      "key": "network_investigation",
+      "facilities": 0
+    },
+    {
+      "combination": "Enforcement + complaint/investigation",
+      "key": "enforcement_investigation",
+      "facilities": 13
+    },
+    {
+      "combination": "All three",
+      "key": "all_three",
+      "facilities": 0
+    }
+  ],
+  "indicator_true_false": {
+    "network_concentration": {
+      "true": 50,
+      "false": 3407
+    },
+    "enforcement_intensity": {
+      "true": 60,
+      "false": 3397
+    },
+    "complaint_investigation": {
+      "true": 46,
+      "false": 3411
+    }
+  },
+  "cluster_size_distribution": [
+    {
+      "cluster_size": "2",
+      "clusters": 57
+    },
+    {
+      "cluster_size": "3",
+      "clusters": 10
+    },
+    {
+      "cluster_size": "4",
+      "clusters": 5
+    }
+  ],
+  "corroboration_summary": {
+    "clusters_evaluated": 72,
+    "corroborated": 70,
+    "corroborated_pct": 97.2
+  },
+  "growth_context": [
+    {
+      "year": "2013",
+      "active_AFHs": "2842",
+      "total_licensed_capacity": "15596"
+    },
+    {
+      "year": "2014",
+      "active_AFHs": "2772",
+      "total_licensed_capacity": "15214"
+    },
+    {
+      "year": "2015",
+      "active_AFHs": "2750",
+      "total_licensed_capacity": "15190"
+    },
+    {
+      "year": "2016",
+      "active_AFHs": "2768",
+      "total_licensed_capacity": "15316"
+    },
+    {
+      "year": "2017",
+      "active_AFHs": "2780",
+      "total_licensed_capacity": "15533"
+    },
+    {
+      "year": "2018",
+      "active_AFHs": "2806",
+      "total_licensed_capacity": "15741"
+    },
+    {
+      "year": "2019",
+      "active_AFHs": "~2,900 (est)",
+      "total_licensed_capacity": "~16,100 (est)"
+    },
+    {
+      "year": "2020",
+      "active_AFHs": "~3,300 (est)",
+      "total_licensed_capacity": "~17,800 (est)"
+    },
+    {
+      "year": "2021",
+      "active_AFHs": "~3,800 (est)",
+      "total_licensed_capacity": "~20,400 (est)"
+    },
+    {
+      "year": "2022",
+      "active_AFHs": "4315",
+      "total_licensed_capacity": "~23,000 (est)"
+    },
+    {
+      "year": "2023",
+      "active_AFHs": "4315",
+      "total_licensed_capacity": "~23,000 (est)"
+    },
+    {
+      "year": "2024",
+      "active_AFHs": "4960",
+      "total_licensed_capacity": "~28,000 (est)"
+    },
+    {
+      "year": "2025",
+      "active_AFHs": "~5,400 (est)",
+      "total_licensed_capacity": "~31,000 (est)"
+    },
+    {
+      "year": "2026",
+      "active_AFHs": "6075",
+      "total_licensed_capacity": "35305"
+    }
+  ],
+  "sensitivity_cube": [
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 0,
+      "facilities": 1390
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 1,
+      "facilities": 190
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 2,
+      "facilities": 36
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 3,
+      "facilities": 11
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 0,
+      "facilities": 24
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 1,
+      "facilities": 16
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 2,
+      "facilities": 4
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 3,
+      "facilities": 3
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 2,
+      "investigation_bucket": 0,
+      "facilities": 2
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 2,
+      "investigation_bucket": 1,
+      "facilities": 4
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 2,
+      "investigation_bucket": 2,
+      "facilities": 2
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 2,
+      "investigation_bucket": 3,
+      "facilities": 2
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 0,
+      "facilities": 2
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 1,
+      "facilities": 4
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 2,
+      "facilities": 4
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 3,
+      "facilities": 6
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 2,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 0,
+      "facilities": 50
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 2,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 1,
+      "facilities": 9
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 2,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 0,
+      "facilities": 1
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 2,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 1,
+      "facilities": 1
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 2,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 1,
+      "facilities": 1
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 3,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 0,
+      "facilities": 18
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 3,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 2,
+      "facilities": 1
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 3,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 1,
+      "facilities": 2
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 4,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 0,
+      "facilities": 8
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 4,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 1,
+      "facilities": 1
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 4,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 0,
+      "facilities": 2
+    },
+    {
+      "county": "King",
+      "cluster_bucket": 4,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 1,
+      "facilities": 1
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 0,
+      "facilities": 803
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 1,
+      "facilities": 111
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 2,
+      "facilities": 24
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 3,
+      "facilities": 9
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 0,
+      "facilities": 15
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 1,
+      "facilities": 10
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 2,
+      "facilities": 4
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 3,
+      "facilities": 5
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 2,
+      "investigation_bucket": 0,
+      "facilities": 5
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 2,
+      "investigation_bucket": 1,
+      "facilities": 4
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 2,
+      "investigation_bucket": 2,
+      "facilities": 2
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 2,
+      "investigation_bucket": 3,
+      "facilities": 1
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 0,
+      "facilities": 2
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 1,
+      "facilities": 5
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 2,
+      "facilities": 3
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 3,
+      "facilities": 2
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 2,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 0,
+      "facilities": 30
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 2,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 1,
+      "facilities": 3
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 2,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 1,
+      "facilities": 1
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 3,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 0,
+      "facilities": 5
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 3,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 1,
+      "facilities": 2
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 3,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 0,
+      "facilities": 1
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 3,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 1,
+      "facilities": 1
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 4,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 0,
+      "facilities": 1
+    },
+    {
+      "county": "Pierce",
+      "cluster_bucket": 4,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 1,
+      "facilities": 3
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 0,
+      "facilities": 483
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 1,
+      "facilities": 65
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 2,
+      "facilities": 13
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 3,
+      "facilities": 4
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 0,
+      "facilities": 7
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 1,
+      "facilities": 5
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 2,
+      "facilities": 2
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 1,
+      "investigation_bucket": 3,
+      "facilities": 1
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 2,
+      "investigation_bucket": 0,
+      "facilities": 1
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 0,
+      "facilities": 1
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 1,
+      "facilities": 3
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 2,
+      "facilities": 1
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 0,
+      "enforcement_bucket": 3,
+      "investigation_bucket": 3,
+      "facilities": 2
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 2,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 0,
+      "facilities": 16
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 2,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 1,
+      "facilities": 1
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 2,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 2,
+      "facilities": 1
+    },
+    {
+      "county": "Spokane",
+      "cluster_bucket": 4,
+      "enforcement_bucket": 0,
+      "investigation_bucket": 0,
+      "facilities": 4
+    }
+  ],
+  "sensitivity_cube_dimensions": {
+    "cluster_bucket_cap": 4,
+    "enforcement_bucket_cap": 3,
+    "investigation_bucket_cap": 3,
+    "note": "A bucket value equal to its cap means 'this many or more'; below the cap it means exactly that many. Sufficient to recompute tier and overlap counts for any threshold in phase1_tier_config.json's allowed_values without exposing any facility-level row."
+  },
+  "default_thresholds": {
+    "cluster_size_threshold": 3,
+    "enforcement_count_threshold": 2,
+    "investigation_count_threshold": 3
+  }
+}

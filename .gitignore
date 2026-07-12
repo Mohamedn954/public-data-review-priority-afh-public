@@ -1,0 +1,19 @@
+.DS_Store
+~$*.doc*
+__pycache__/
+*.pyc
+.venv/
+venv/
+/data/
+/sources/
+/deliverables/
+
+# Full paper artifacts now hosted externally (SSRN); kept locally only, not in the public repo.
+/Hussein_Manuscript.docx
+/Hussein_Manuscript.pdf
+/oregon_replication_test/OR_Standalone_Policy_Paper.md
+/oregon_replication_test/OR_Standalone_Policy_Paper.docx
+/oregon_replication_test/OR_Standalone_Policy_Paper.pdf
+
+# Underlying technical report; kept in the private companion repository only.
+/oregon_replication_test/OR_Replication_Report.md

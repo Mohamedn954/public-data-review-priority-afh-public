@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this manuscript, replication package, or Phase 1 toolkit, please cite it as below."
+title: "A Public-Data Review-Priority Framework for Medicaid Residential Care Oversight: Evidence from Washington State Adult Family Homes"
+type: dataset
+authors:
+  - family-names: Hussein
+    given-names: Mohamed Noor
+date-released: 2026-07-06
+version: "1.0"
+repository-code: "https://github.com/Mohamedn954/public-data-review-priority-afh-public"
+url: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7070198"
+license: CC-BY-4.0
+keywords:
+  - Medicaid program integrity
+  - Adult Family Homes
+  - Home and Community-Based Services
+  - Washington State
+  - public-data review priority
+  - Minnesota Medicaid enforcement record
+  - replication package
+abstract: >
+  A public, journal-safe replication package for a working paper applying a
+  20-indicator public-data review-priority typology (derived from Minnesota's
+  public Medicaid enforcement record) to Washington State's Adult Family Home
+  sector. Includes the manuscript, a de-identified aggregate replication
+  dataset, portable analysis scripts, and a static Phase 1 public-data
+  review-priority dashboard. This is a review-priority research prototype,
+  not a fraud score, validated predictive model, or enforcement tool.

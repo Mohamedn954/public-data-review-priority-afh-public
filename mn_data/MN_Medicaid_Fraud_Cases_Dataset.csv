@@ -1,0 +1,23 @@
+Defendant,Entity,Program,Amount,Charges,Status,Source,Red_Flags
+Faysal Abdiweli,EIDBI Autism Center,EIDBI,16000000,"Wire fraud, Identity theft",Charged (May 2026),DOJ May 2026 Takedown,"RF-10, RF-14, RF-15"
+Abdinajib Hassan Yussuf,Star Autism Center LLC,EIDBI,6000000,Wire fraud,Charged (Dec 2025),IRS-CI Dec 2025,"RF-13, RF-14"
+Asha Farhan Hassan,EIDBI Autism Center,EIDBI,14000000,Wire fraud,Pled Guilty (Dec 2025),IRS-CI Dec 2025,RF-06 (Feeding Our Future connection)
+"Hassan Ahmed Hussein, Ahmed Abdirashid Mohamed",Pristine Health LLC,HSS,750000,Wire fraud,Charged (Dec 2025),IRS-CI Dec 2025,"RF-09, RF-14"
+Kaamil Omar Sallah,"SafeLodgings, Inc.",HSS,1400000,Wire fraud,"Charged (Dec 2025), Fled",IRS-CI Dec 2025,"RF-10, RF-12"
+"Anthony Waddell Jefferson, Lester Brown",HSS Provider,HSS,3500000,Wire fraud,Charged (Dec 2025),IRS-CI Dec 2025,"RF-09, RF-13, RF-14"
+"Moktar Hassan Aden, Mustafa Dayib Ali, Khalid Ahmed Dayib, Abdifitah Mohamud Mohamed","Brilliant Minds Services LLC, Foundation First Services LLC",HSS,2300000,Wire fraud,Charged (Sep 2025),IRS-CI Sep 2025,"RF-03, RF-11, RF-14"
+"Christopher Adesoji Falade, Emmanuel Oluwademilade Falade",Faladcare Inc.,HSS,2200000,Wire fraud,Charged (Sep 2025),IRS-CI Sep 2025,RF-11
+Asad Ahmed Adow,Leo Human Services LLC,HSS,2700000,Wire fraud,Charged (Sep 2025),IRS-CI Sep 2025,"RF-11, RF-14"
+Anwar Ahmed Adow,Liberty Plus LLC,HSS,1200000,Wire fraud,Charged (Sep 2025),IRS-CI Sep 2025,"RF-11, RF-14"
+Ultimate Home Health Services LLC (Business),Ultimate Home Health Services LLC,ICS,1100000,Search Warrant,Under Investigation (Dec 2025),IRS-CI Dec 2025,"RF-10, RF-13 (Deceased recipient)"
+Healey Homes (Entity),Healey Homes,IHS,22000000,Wire fraud,Charged (May 2026),DOJ May 2026 Takedown,RF-07 (Concealed ownership of housing)
+Tremayne Lamar Jackson,PCA Provider,PCA,125000,7 felony theft,Charged (Jun 2026),MN AG Jun 2026,"RF-10, RF-12 (Out of state)"
+Christine Marie Pryor,Counseling Provider,Psychotherapy,150000,"6 theft, 6 identity theft",Charged (Jun 2026),MN AG Jun 2026,"RF-14, RF-15"
+Fernando Navarro,PCA Provider,PCA,70000,4 felony theft,Charged (Jun 2026),MN AG Jun 2026,"RF-10, RF-12 (Recipient out of state)"
+Shawki Elsaid,PCA Provider,PCA,182000,"8 theft, 2 identity theft",Charged (Jun 2026),MN AG Jun 2026,"RF-10, RF-12, RF-15"
+Ahmed Agwa,PCA Provider,PCA,94000,6 felony theft,Charged (Jun 2026),MN AG Jun 2026,"RF-10, RF-12, RF-13 (Deceased recipient)"
+Edward Sherrod,PCA Provider,PCA,60000,6 felony theft,Charged (Jun 2026),MN AG Jun 2026,RF-10
+Jessica Wavra,ARMHS Provider,ARMHS,29000,5 theft,Charged (Jun 2026),MN AG Jun 2026,RF-10
+"Abdifatah Yusuf, Lul Ahmed",Promise Health Services LLC,HCBS,7200000,"Racketeering, Theft",Charged (Jun 2024 / Dec 2023),MN AG Jun 2024,"RF-09, RF-10, RF-13"
+"Abdiweli Mohamud, Abdirashid Said",Minnesota Home Health Care LLC,PCA,1800000,"Racketeering, Theft",Charged (Jun 2024 / Dec 2023),MN AG Jun 2024,"RF-06 (Excluded provider), RF-10"
+"Charles Omato, LaTonia Jackson",Driving Miss Daisy,NEMT,1400000,Theft,Charged (Jun 2024),MN AG Jun 2024,"RF-10, RF-12"

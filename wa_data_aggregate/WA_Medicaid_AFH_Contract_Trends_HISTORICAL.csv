@@ -1,0 +1,5 @@
+year,county,total_AFHs,Medicaid_contracted_AFHs,percent_Medicaid_contracted,contract_type,specialty_designation,source,notes,confidence_level
+2013,STATEWIDE,2842,2496,87.8,AFH Medicaid contract (all types),All,DSHS BERK 2018 Table 3.1/3.4,Official. 87.8% of AFHs Medicaid-contracted in 2013.,High
+2015,STATEWIDE,2750,2438,88.7,AFH Medicaid contract (all types),All,DSHS BERK 2018 Table 3.1/3.4,Official. 88.7% contracted.,High
+2017,STATEWIDE,2780,2454,88.3,AFH Medicaid contract (all types),All,DSHS BERK 2018 Table 3.1/3.4,Official. 88.3% contracted.,High
+2018,STATEWIDE,2806,2478,88.3,AFH Medicaid contract (all types),All,DSHS BERK 2018 Table 3.1/3.4,"Official. 88.3% contracted; 13,889 of 15,741 beds in MC facilities.",High
